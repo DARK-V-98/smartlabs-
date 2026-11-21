@@ -1,0 +1,147 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated student profile, exam goal, credit pools, and security preferences.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID of the owner." },
+        "displayName": { "type": "string", "description": "Student full name." },
+        "email": { "type": "string", "description": "Google account email." },
+        "phone": { "type": "string", "description": "Optional phone number." },
+        "photoUrl": { "type": "string", "description": "Optional profile photo URL." },
+        "examGoal": { "type": "string", "enum": ["PTE", "IELTS"], "description": "Primary target exam." },
+        "targetScore": { "type": "number", "description": "Target PTE (10-90) or IELTS band (4.0-9.0)." },
+        "examDateLabel": { "type": "string", "description": "Optional upcoming exam date label." },
+        "weeklyGoalSessions": { "type": "integer", "description": "Weekly study session target." },
+        "sessionsThisWeek": { "type": "integer", "description": "Completed sessions this week." },
+        "streakDays": { "type": "integer", "description": "Active daily study streak." },
+        "role": { "type": "string", "enum": ["student"], "description": "Immutable account role." },
+        "lecturerViewEnabled": { "type": "boolean", "description": "Whether lecturer preview mode is toggled." },
+        "biometricEnabled": { "type": "boolean", "description": "Whether biometric lock is enabled." },
+        "creditsSpeaking": { "type": "integer", "description": "Speaking credit pool balance." },
+        "creditsSst": { "type": "integer", "description": "Summarize Spoken Text credit pool." },
+        "creditsSwt": { "type": "integer", "description": "Summarize Written Text credit pool." },
+        "creditsEssay": { "type": "integer", "description": "PTE Essay credit pool." },
+        "creditsIeltsEssay": { "type": "integer", "description": "IELTS Essay credit pool." },
+        "creditsMock": { "type": "integer", "description": "PTE Mock test credit pool." },
+        "creditsIeltsMock": { "type": "integer", "description": "IELTS Mock test credit pool." },
+        "creditsUniversal": { "type": "integer", "description": "Universal credit pool." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of profile creation." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp of last update." }
+      },
+      "required": [
+        "userId", "displayName", "email", "examGoal", "targetScore",
+        "weeklyGoalSessions", "sessionsThisWeek", "streakDays", "role",
+        "lecturerViewEnabled", "biometricEnabled",
+        "creditsSpeaking", "creditsSst", "creditsSwt", "creditsEssay",
+        "creditsIeltsEssay", "creditsMock", "creditsIeltsMock", "creditsUniversal",
+        "createdAt", "updatedAt"
+      ]
+    },
+    "PracticeAttempt": {
+      "title": "PracticeAttempt",
+      "description": "Completed PTE or IELTS practice or mock attempt with AI breakdown.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner Firebase Auth UID." },
+        "examType": { "type": "string", "enum": ["PTE", "IELTS"] },
+        "skill": { "type": "string", "enum": ["Speaking", "Writing", "Reading", "Listening", "Mock"] },
+        "taskTitle": { "type": "string" },
+        "overallScore": { "type": "number" },
+        "maxScore": { "type": "number" },
+        "contentScore": { "type": "number" },
+        "fluencyScore": { "type": "number" },
+        "pronunciationScore": { "type": "number" },
+        "grammarScore": { "type": "number" },
+        "userResponse": { "type": "string" },
+        "aiFeedback": { "type": "string" },
+        "modelAnswer": { "type": "string" },
+        "durationSeconds": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId", "examType", "skill", "taskTitle", "overallScore", "maxScore",
+        "contentScore", "fluencyScore", "pronunciationScore", "grammarScore",
+        "userResponse", "aiFeedback", "modelAnswer", "durationSeconds",
+        "createdAt", "updatedAt"
+      ]
+    },
+    "BookingRecord": {
+      "title": "BookingRecord",
+      "description": "One-to-one lecturer bookings, courses, webinars, and workshops.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "bookingType": { "type": "string", "enum": ["ONE_TO_ONE", "COURSE", "WEBINAR", "WORKSHOP"] },
+        "title": { "type": "string" },
+        "lecturerName": { "type": "string" },
+        "dateLabel": { "type": "string" },
+        "timeSlot": { "type": "string" },
+        "mode": { "type": "string", "enum": ["Online", "Physical"] },
+        "status": { "type": "string", "enum": ["confirmed", "held", "completed", "cancelled"] },
+        "priceLkr": { "type": "integer" },
+        "zoomUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId", "bookingType", "title", "lecturerName", "dateLabel",
+        "timeSlot", "mode", "status", "priceLkr", "zoomUrl",
+        "createdAt", "updatedAt"
+      ]
+    },
+    "TutorMessage": {
+      "title": "TutorMessage",
+      "description": "AI Tutor conversation turn synced across devices.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "courseContext": { "type": "string" },
+        "sender": { "type": "string", "enum": ["user", "model"] },
+        "messageText": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "courseContext", "sender", "messageText", "createdAt", "updatedAt"]
+    },
+    "SupportTicket": {
+      "title": "SupportTicket",
+      "description": "Support inquiries and certificate requests.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "subject": { "type": "string" },
+        "category": { "type": "string", "enum": ["Support", "Certificate", "Billing"] },
+        "status": { "type": "string", "enum": ["open", "in_progress", "resolved"] },
+        "latestMessage": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "subject", "category", "status", "latestMessage", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private student profile, exam goal, and credit balances."
+    },
+    "/users/{userId}/attempts/{attemptId}": {
+      "schema": { "$ref": "#/entities/PracticeAttempt" },
+      "description": "Student practice and mock test attempts with AI feedback."
+    },
+    "/users/{userId}/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/BookingRecord" },
+      "description": "Student bookings for 1-on-1 sessions, courses, webinars, and workshops."
+    },
+    "/users/{userId}/tutor_messages/{messageId}": {
+      "schema": { "$ref": "#/entities/TutorMessage" },
+      "description": "Student AI Tutor chat history."
+    },
+    "/users/{userId}/support_tickets/{ticketId}": {
+      "schema": { "$ref": "#/entities/SupportTicket" },
+      "description": "Student support tickets and certificate requests."
+    }
+  }
+}

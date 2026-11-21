@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <string name="firestore_database_id" translatable="false">ai-studio-android-smartlab-0b434ea2-1916-4e56-a449-37793ec4c441</string>
+    <string name="recaptcha_site_key" translatable="false">6LdwPSsuAAAAAMzyyAMA33TtTOg0wX-8WUpIFgGC</string>
+</resources>

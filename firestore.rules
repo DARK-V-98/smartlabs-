@@ -1,0 +1,251 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    function isValidCreditPool(val) {
+      return val is int && val >= 0 && val <= 100000;
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             data.email is string && data.email.size() >= 3 && data.email.size() <= 120 &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 30)) &&
+             (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 500)) &&
+             data.examGoal in ['PTE', 'IELTS'] &&
+             data.targetScore is number && data.targetScore >= 4.0 && data.targetScore <= 90.0 &&
+             (!('examDateLabel' in data) || (data.examDateLabel is string && data.examDateLabel.size() <= 40)) &&
+             data.weeklyGoalSessions is int && data.weeklyGoalSessions >= 1 && data.weeklyGoalSessions <= 50 &&
+             data.sessionsThisWeek is int && data.sessionsThisWeek >= 0 && data.sessionsThisWeek <= 200 &&
+             data.streakDays is int && data.streakDays >= 0 && data.streakDays <= 3650 &&
+             data.role == 'student' &&
+             data.lecturerViewEnabled is bool &&
+             data.biometricEnabled is bool &&
+             isValidCreditPool(data.creditsSpeaking) &&
+             isValidCreditPool(data.creditsSst) &&
+             isValidCreditPool(data.creditsSwt) &&
+             isValidCreditPool(data.creditsEssay) &&
+             isValidCreditPool(data.creditsIeltsEssay) &&
+             isValidCreditPool(data.creditsMock) &&
+             isValidCreditPool(data.creditsIeltsMock) &&
+             isValidCreditPool(data.creditsUniversal) &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidPracticeAttempt(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.examType in ['PTE', 'IELTS'] &&
+             data.skill in ['Speaking', 'Writing', 'Reading', 'Listening', 'Mock'] &&
+             data.taskTitle is string && data.taskTitle.size() >= 1 && data.taskTitle.size() <= 120 &&
+             data.overallScore is number && data.overallScore >= 0.0 && data.overallScore <= 90.0 &&
+             data.maxScore is number && data.maxScore >= 9.0 && data.maxScore <= 90.0 &&
+             data.contentScore is number && data.contentScore >= 0.0 && data.contentScore <= 90.0 &&
+             data.fluencyScore is number && data.fluencyScore >= 0.0 && data.fluencyScore <= 90.0 &&
+             data.pronunciationScore is number && data.pronunciationScore >= 0.0 && data.pronunciationScore <= 90.0 &&
+             data.grammarScore is number && data.grammarScore >= 0.0 && data.grammarScore <= 90.0 &&
+             data.userResponse is string && data.userResponse.size() <= 10000 &&
+             data.aiFeedback is string && data.aiFeedback.size() <= 5000 &&
+             data.modelAnswer is string && data.modelAnswer.size() <= 5000 &&
+             data.durationSeconds is int && data.durationSeconds >= 0 && data.durationSeconds <= 14400 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidBookingRecord(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.bookingType in ['ONE_TO_ONE', 'COURSE', 'WEBINAR', 'WORKSHOP'] &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 140 &&
+             data.lecturerName is string && data.lecturerName.size() >= 1 && data.lecturerName.size() <= 80 &&
+             data.dateLabel is string && data.dateLabel.size() >= 1 && data.dateLabel.size() <= 40 &&
+             data.timeSlot is string && data.timeSlot.size() >= 1 && data.timeSlot.size() <= 40 &&
+             data.mode in ['Online', 'Physical'] &&
+             data.status in ['confirmed', 'held', 'completed', 'cancelled'] &&
+             data.priceLkr is int && data.priceLkr >= 0 && data.priceLkr <= 1000000 &&
+             data.zoomUrl is string && data.zoomUrl.size() <= 300 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidTutorMessage(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.courseContext is string && data.courseContext.size() >= 1 && data.courseContext.size() <= 80 &&
+             data.sender in ['user', 'model'] &&
+             data.messageText is string && data.messageText.size() >= 1 && data.messageText.size() <= 8000 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidSupportTicket(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 140 &&
+             data.category in ['Support', 'Certificate', 'Billing'] &&
+             data.status in ['open', 'in_progress', 'resolved'] &&
+             data.latestMessage is string && data.latestMessage.size() >= 1 && data.latestMessage.size() <= 2000 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false;
+
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().userId == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'email', 'examGoal', 'targetScore',
+                         'weeklyGoalSessions', 'sessionsThisWeek', 'streakDays', 'role',
+                         'lecturerViewEnabled', 'biometricEnabled',
+                         'creditsSpeaking', 'creditsSst', 'creditsSwt', 'creditsEssay',
+                         'creditsIeltsEssay', 'creditsMock', 'creditsIeltsMock', 'creditsUniversal',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'email', 'phone', 'photoUrl',
+                         'examGoal', 'targetScore', 'examDateLabel',
+                         'weeklyGoalSessions', 'sessionsThisWeek', 'streakDays', 'role',
+                         'lecturerViewEnabled', 'biometricEnabled',
+                         'creditsSpeaking', 'creditsSst', 'creditsSwt', 'creditsEssay',
+                         'creditsIeltsEssay', 'creditsMock', 'creditsIeltsMock', 'creditsUniversal',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().role == existing().role &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'phone', 'photoUrl', 'examGoal', 'targetScore',
+                         'examDateLabel', 'weeklyGoalSessions', 'sessionsThisWeek', 'streakDays',
+                         'lecturerViewEnabled', 'biometricEnabled',
+                         'creditsSpeaking', 'creditsSst', 'creditsSwt', 'creditsEssay',
+                         'creditsIeltsEssay', 'creditsMock', 'creditsIeltsMock', 'creditsUniversal',
+                         'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /attempts/{attemptId} {
+        allow get: if isOwner(userId) && isValidId(attemptId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(attemptId) &&
+                         incoming().userId == userId &&
+                         incoming().keys().hasAll([
+                           'userId', 'examType', 'skill', 'taskTitle', 'overallScore', 'maxScore',
+                           'contentScore', 'fluencyScore', 'pronunciationScore', 'grammarScore',
+                           'userResponse', 'aiFeedback', 'modelAnswer', 'durationSeconds',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'examType', 'skill', 'taskTitle', 'overallScore', 'maxScore',
+                           'contentScore', 'fluencyScore', 'pronunciationScore', 'grammarScore',
+                           'userResponse', 'aiFeedback', 'modelAnswer', 'durationSeconds',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidPracticeAttempt(incoming());
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(attemptId);
+      }
+
+      match /bookings/{bookingId} {
+        allow get: if isOwner(userId) && isValidId(bookingId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(bookingId) &&
+                         incoming().userId == userId &&
+                         incoming().keys().hasAll([
+                           'userId', 'bookingType', 'title', 'lecturerName', 'dateLabel',
+                           'timeSlot', 'mode', 'status', 'priceLkr', 'zoomUrl',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'bookingType', 'title', 'lecturerName', 'dateLabel',
+                           'timeSlot', 'mode', 'status', 'priceLkr', 'zoomUrl',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidBookingRecord(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(bookingId) &&
+                         isValidBookingRecord(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         !(existing().status in ['completed', 'cancelled']) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(bookingId);
+      }
+
+      match /tutor_messages/{messageId} {
+        allow get: if isOwner(userId) && isValidId(messageId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(messageId) &&
+                         incoming().userId == userId &&
+                         incoming().keys().hasAll([
+                           'userId', 'courseContext', 'sender', 'messageText', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'courseContext', 'sender', 'messageText', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidTutorMessage(incoming());
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(messageId);
+      }
+
+      match /support_tickets/{ticketId} {
+        allow get: if isOwner(userId) && isValidId(ticketId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(ticketId) &&
+                         incoming().userId == userId &&
+                         incoming().keys().hasAll([
+                           'userId', 'subject', 'category', 'status', 'latestMessage', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'subject', 'category', 'status', 'latestMessage', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidSupportTicket(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(ticketId) &&
+                         isValidSupportTicket(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         existing().status != 'resolved' &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['status', 'latestMessage', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(ticketId);
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "SmartLabs",
+  "description": "SmartLabs PTE & IELTS preparation platform with AI scoring, mock tests, live courses, one-to-one bookings, offline sync, and biometric security.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
